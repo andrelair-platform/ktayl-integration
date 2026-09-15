@@ -13,10 +13,10 @@ reusable workflow. This repo is the product home; it may grow app code as the do
 
 | ID | Epic | Priority |
 |---|---|---|
-| INT-01 |  | API gateway & broker APIs::P1 |
-| INT-02 |  | Event backbone (NATS)::P2 |
-| INT-03 |  | ETL & batch interfaces::P2 |
-| INT-04 |  | MFT/SFTP & EDI::P3 |
+| INT-01 | API gateway & broker APIs | P1 |
+| INT-02 | Event backbone (NATS) | P2 |
+| INT-03 | ETL & batch interfaces | P2 |
+| INT-04 | MFT/SFTP & EDI | P3 |
 
 ## License
 MIT — see [LICENSE](LICENSE).
