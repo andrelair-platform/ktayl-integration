@@ -1,0 +1,13 @@
+name: BMAD Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bmad/stories/**'
+  workflow_dispatch:
+
+jobs:
+  bmad-sync:
+    uses: andrelair-platform/.github/.github/workflows/bmad-sync.yml@main
+    secrets: inherit
