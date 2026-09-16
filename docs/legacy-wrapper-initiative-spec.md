@@ -87,6 +87,27 @@ Submission → Documents → Search → Underwriting UI → Renewal → … even
 engine, then Claims, Billing. Each step: the ACL re-routes that slice; the core shrinks. Demoable by
 flipping a route.
 
+### Track-B mission — modernize the *real* GenApp onto the cluster (rules-first)
+Track B is no longer just "wrap GenApp" — the mission is to **transform it so it can run on the cluster**,
+by **recovering its business rules and reimplementing them** as cluster-native services (verified against
+the original). **Honest constraint:** GenApp is CICS/DB2/VSAM-bound → you can't recompile-and-run it on
+k8s (no OSS CICS runtime); "run on the cluster" = **rules-first reimplementation** (rewrite/strangler),
+which is how enterprises actually modernize. Four phases:
+- **M1 — Comprehend:** recover each program's rules from the COBOL → the **business-rules catalog**
+  (`cics-genapp/docs/business-rules-catalog.md`). *Comprehension is engineer-owned; the catalog has the
+  map + method + a worked example (LGACUS01) to catalog the rest against.*
+- **M2 — Target design:** map GenApp domains → modern services; COMMAREA → JSON DTOs; return codes →
+  errors; VSAM+DB2 dual-write → one modern store; TSQ → structured logs. **GlobalCore is the seed** of
+  the modern target.
+- **M3 — Reimplement + verify:** build the modern equivalents (GAP wrapper chart) with **equivalence
+  tests** derived from M1 (input → expected return code/output; if a z/OS emulator exists, diff vs real
+  GenApp).
+- **M4 — Run + strangle:** deploy on k8s; the ACL routes traffic off the legacy core to the modern
+  services until the COBOL is retired.
+
+The convergence: **GenApp = the source-of-truth for the rules; the modern cluster services = the
+transformed target; GlobalCore seeds that target.** Track-A wrapping work + M1–M4 use the same ACL/tests.
+
 ## 5. Staged delivery (don't build it all at once)
 | Stage | Deliverable | Home |
 |---|---|---|
