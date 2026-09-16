@@ -30,6 +30,22 @@ cancellations/reinstatements · audit history.
 **Domains (built incrementally):** Accounts · Brokers · Submissions · Policies · Endorsements ·
 Renewals · Rating · Claims · Premiums · Payments · Reinsurance · Regulatory exports.
 
+**Model it on a *real* insurance core:** GlobalCore's data model + flows mirror **IBM's GenApp**
+(`cicsdev/cics-genapp`, EPL-2.0) — the canonical open-source **insurance COBOL/CICS** app (customers +
+policies + claims, DB2, 3270), which IBM designed to be *extended with web services*. Studying GenApp is
+how we keep our fictional core faithful to a genuine one. See §6.
+
+## 1b. Two tracks (which legacy core you wrap) — same wrapping skill either way
+
+- **Track A — GlobalCore (default, runs today).** Our Java 8 / SOAP monolith, modeled on GenApp,
+  running as a container on the controller. **No mainframe needed** → this is what we build now.
+- **Track B — the *real* GenApp (optional, advanced credential).** Run IBM's actual COBOL/CICS GenApp
+  on a **z/OS emulator** (e.g. IBM Z Xplore / a z/OS trial / Wazi — *not* on the k8s cluster), expose its
+  COBOL via **CICS web services (SOAP)**, and wrap **that**. Same ACL/strangler pattern, but against a
+  genuine IBM mainframe insurance app — the "I modernized real z/OS COBOL" credential. Needs z/OS access;
+  pursue only if/when you get an emulator. **The modern wrap (ACL, workbench, doc-AI) is identical**, so
+  Track A work transfers directly to Track B.
+
 ## 2. Target architecture (modern platform wrapping GlobalCore)
 
 ```
@@ -75,11 +91,17 @@ flipping a route.
 | 4 | **Strangle** — CDC → events → Policy read model + search; move domains out | Data #5 |
 
 ## 6. Reference systems (study, don't necessarily reuse)
+- **IBM GenApp — `cicsdev/cics-genapp` (EPL-2.0, ~40★, IBM-maintained) — the primary reference.** The
+  canonical open-source **general insurance** application: COBOL/CICS/DB2, customers + policies + claims,
+  a 3270 UI, sample data. IBM explicitly designed it to be **extended** (web services, business events,
+  dashboards) — i.e. wrapped — so it's both our **domain/data-model reference** (model GlobalCore on it)
+  and the **Track-B runnable real core** (on a z/OS emulator). Its own docs note some parts don't follow
+  best practice *on purpose* — that's the modernization lab. Legally reusable (EPL-2.0), unlike the repos below.
 - **Elucida Insurance System** — older open-source Java/JEE insurance admin (policy + claims, ~2006–2016);
-  closest to a real legacy lab — good to study structure. *(Verify license before reusing any code.)*
+  a good structural study of a real legacy Java core. *(Verify license before reusing any code.)*
 - **Open Insurance Platform** — broad insurance-core domain reference (project still forming) → domain map.
 - **CoSure PAS** — a *modern* Go/Python PAS → useful as a **target** shape, **not** the legacy core.
-- Insurance COBOL repos exist but are **unlicensed** → inspiration only, cannot deploy.
+- Other insurance COBOL repos exist but are **unlicensed** → inspiration only, cannot deploy.
 
 ## 7. Scope guardrails
 - **One domain first** (Policy) with *real* logic; add domains incrementally.
