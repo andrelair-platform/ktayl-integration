@@ -39,12 +39,18 @@ how we keep our fictional core faithful to a genuine one. See §6.
 
 - **Track A — GlobalCore (default, runs today).** Our Java 8 / SOAP monolith, modeled on GenApp,
   running as a container on the controller. **No mainframe needed** → this is what we build now.
-- **Track B — the *real* GenApp (optional, advanced credential).** Run IBM's actual COBOL/CICS GenApp
-  on a **z/OS emulator** (e.g. IBM Z Xplore / a z/OS trial / Wazi — *not* on the k8s cluster), expose its
-  COBOL via **CICS web services (SOAP)**, and wrap **that**. Same ACL/strangler pattern, but against a
-  genuine IBM mainframe insurance app — the "I modernized real z/OS COBOL" credential. Needs z/OS access;
-  pursue only if/when you get an emulator. **The modern wrap (ACL, workbench, doc-AI) is identical**, so
-  Track A work transfers directly to Track B.
+- **Track B — the *real* GenApp (optional, advanced credential) — NOW FORKED IN.** IBM's actual
+  COBOL/CICS GenApp is forked into the org at **`andrelair-platform/cics-genapp`** (fork of
+  `cicsdev/cics-genapp`, EPL-2.0) and cloned locally — the real code is present to study now: **31 COBOL
+  programs** (`base/src/*.cbl`, e.g. `LGACUS01` add-customer, `LGACDB01` policy DB), **13 copybooks**,
+  DB2 DDL, 3270 BMS maps, event bindings, and the **`base/cntl/wsa*.jcl` CICS web-service jobs** — the
+  built-in **SOAP wrap hook** (add/inquire customer & policy as web services). **It only *runs* on
+  CICS/z/OS** (a mainframe or emulator — IBM Z Xplore / a z/OS trial / Wazi; *not* the k8s cluster), so
+  Track B = get an emulator → run GenApp → enable its `wsa*` web services → point the **same** ACL/
+  workbench at it. The "I modernized real z/OS COBOL" credential. **The modern wrap is identical to
+  Track A**, so all Track-A work transfers directly.
+  - **Study it now (no mainframe needed):** read `cics-genapp/base/src/*.cbl` + the copybooks to see how
+    a genuine 20-year-old insurance core is structured — that's what GlobalCore (Track A) is modelled on.
 
 ## 2. Target architecture (modern platform wrapping GlobalCore)
 
@@ -91,12 +97,14 @@ flipping a route.
 | 4 | **Strangle** — CDC → events → Policy read model + search; move domains out | Data #5 |
 
 ## 6. Reference systems (study, don't necessarily reuse)
-- **IBM GenApp — `cicsdev/cics-genapp` (EPL-2.0, ~40★, IBM-maintained) — the primary reference.** The
-  canonical open-source **general insurance** application: COBOL/CICS/DB2, customers + policies + claims,
-  a 3270 UI, sample data. IBM explicitly designed it to be **extended** (web services, business events,
-  dashboards) — i.e. wrapped — so it's both our **domain/data-model reference** (model GlobalCore on it)
-  and the **Track-B runnable real core** (on a z/OS emulator). Its own docs note some parts don't follow
-  best practice *on purpose* — that's the modernization lab. Legally reusable (EPL-2.0), unlike the repos below.
+- **IBM GenApp — forked in at `andrelair-platform/cics-genapp` (EPL-2.0, from `cicsdev/cics-genapp`) — the
+  primary reference + Track-B core.** The canonical open-source **general insurance** application:
+  COBOL/CICS/DB2, customers + policies + claims, a 3270 UI, sample data. IBM explicitly designed it to be
+  **extended** (web services via the `wsa*` jobs, business events, dashboards) — i.e. wrapped. It's both
+  our **domain/data-model reference** (GlobalCore is modelled on it) **and** the **Track-B real core** to
+  run on a z/OS emulator. **Now forked into the org + cloned locally**, so the real COBOL/copybooks/DDL/JCL
+  are present to study today. Its docs note some parts aren't best-practice *on purpose* — that's the lab.
+  EPL-2.0 → attribution preserved by the fork.
 - **Elucida Insurance System** — older open-source Java/JEE insurance admin (policy + claims, ~2006–2016);
   a good structural study of a real legacy Java core. *(Verify license before reusing any code.)*
 - **Open Insurance Platform** — broad insurance-core domain reference (project still forming) → domain map.
