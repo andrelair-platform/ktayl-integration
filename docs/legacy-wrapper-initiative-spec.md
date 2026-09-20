@@ -10,10 +10,19 @@
 > modernization architecture without emulator/VSAM pain, and lets us put real insurance logic in it.
 > (We don't need HDI's actual proprietary stack — a faithful *fictional* carrier is the right lab.)
 
+> **Direction update (2026-09-20) — real Oracle + the Claims domain.** Two refinements: **(1)** GlobalCore's
+> datastore evolves from *Postgres-pretending-to-be-Oracle* to **real Oracle (Free edition) + PL/SQL** — the
+> Oracle experience is a required outcome. **(2)** The wrapped/delivered domain is **Claims**, **not** Policy —
+> Policy is already modern (the live `ktayl-policy-service` #6), so wrapping a legacy Policy core would just
+> re-deliver what we have. Wrapping GlobalCore's **Claims** domain instead *delivers a real, needed
+> capability* (**ktayl-claims #11** = the modern Claims service built AS the ACL). Spine: EA Blueprint §2b +
+> `insurance-platform/legacy-core-modernization`; Claims Path-C set in `ktayl-claims/docs/`.
+
 ## 1. GlobalCore — the deliberately-legacy core (System of Record)
 
 **Stack (authentic-legacy):** Java 8 + Spring (+ spring-ws for SOAP) + JSP + Tomcat (WAR) +
-PostgreSQL *pretending to be Oracle/DB2* + stored procedures + cron/**nightly batch** + SFTP/CSV.
+**Oracle (Free) + PL/SQL** (v0 used Postgres-pretending-to-be-Oracle → evolving to real Oracle) +
+stored procedures + cron/**nightly batch** + SFTP/CSV.
 **One shared schema, synchronous, XML interfaces, no REST, no Kafka, no containers-native patterns.**
 
 **Runs OUTSIDE k8s** — a plain Docker container on the controller — because legacy isn't cloud-native;
