@@ -89,3 +89,51 @@ partner today). Rate-limiting for the handful of current nip.io/tunnel-exposed a
 
 **Revisit trigger:** the first real broker/reinsurer/EDI consumer, or a partner contract requiring
 metered/keyed API access → execute step 2 and write the gateway-product ADR.
+
+## Current state — the interim API management in place (as-built, 2026-11-15)
+
+Step 1 is **done and verified live**. What runs today (the "compose from the platform" model):
+
+| Capability | Provided by | Status |
+|---|---|---|
+| **API catalog / developer portal** — discovery, ownership, OpenAPI/Swagger rendering, provider↔consumer graph | **Backstage** | ✅ live — API entities registered + **served** (verified in `backstage_plugin_catalog.final_entities`): custom = `ktayl-core-billing-api`, `minicloud-plane-api`, `litellm-api`, `erpnext-rest-api`, `platform-demo-api`, `markitdown-proxy-api`, `rag-ingest-api`; vendor = `authentik-api`, `harbor-api`, `nextcloud-api`, `n8n-api`. Each has a provider Component + `providesApi`/`apiProvidedBy` relation + rendered spec + a link to the authoritative docs. |
+| **AuthN / AuthZ** — SSO, service-to-service | **Authentik** (OIDC + M2M client-credentials) | ✅ already there |
+| **Network / L7 policy** | **Cilium + Hubble** (default-deny, per-service) | ✅ already there |
+| **API contracts** | committed `api/openapi.yaml` + **L3 contract tests** | ✅ already there |
+
+**Scope (be precise — do not overclaim):** this is the **catalog + identity + policy** half of API
+management, for **internal (east-west)** APIs. It explicitly does **NOT** include the runtime gateway
+half — **no per-consumer API keys, no rate-limiting, no quotas, no request transformation, no per-API
+usage analytics.** Backstage is a *portal*, not a *dataplane*. The honest claim is: *"a working interim
+API catalog + governance layer; the dedicated external gateway is designed and gated behind the first
+external consumer."*
+
+## When to switch to "real" API management (the gateway tier) — the trigger checklist
+
+Stand up the Kong edge gateway (step 2) when **ANY** of these becomes true. The common thread:
+**an API consumer outside the trust boundary, or money/metering riding on an API.**
+
+1. **First external / third-party consumer** (THE primary trigger) — a broker, reinsurer, EDI/coverholder,
+   or any client we don't control calls an API. Internal east-west never needs it; the edge does. (= INT-01.)
+2. **Per-consumer API keys** — a partner expects an API key to issue/rotate/revoke, not an Authentik
+   OIDC client-credentials flow.
+3. **Rate-limiting / quotas to protect a backend** — abuse protection or plan/quota enforcement on a
+   partner- or public-facing API (nginx annotations are too crude).
+4. **Per-consumer / per-API usage analytics** — billing, SLA reporting, "who called what, how often".
+5. **Monetization / productization** — a brick (e.g. the DORA vendor-risk SaaS) exposes a **metered** API
+   to paying customers → keys + plans + metering = APIM (`productization.md`).
+6. **Edge mediation / transformation** — protocol/format translation or a versioning facade for an
+   external consumer (EDI, legacy partner formats).
+7. **A regulatory / audit requirement** for the external API surface — DORA/ACPR requiring documented,
+   controlled, per-consumer-audited external API access.
+
+**NON-triggers — stay on the interim model, do NOT build a gateway for these:** more internal services
+calling each other (Authentik M2M + Cilium handle it) · an internal UI/BFF consuming an internal API ·
+wanting a nicer catalog (Backstage already does it) · adding more internal OpenAPI specs to the catalog.
+
+**The one-line test:** *does an API now face a party I don't control, or does money/metering ride on it?*
+→ **yes** = build the gateway; **no** = stay interim.
+
+When a trigger fires: execute step 2 (**Kong OSS DB-less** at the edge — keys + rate-limit + Authentik
+OIDC validation), keep Authentik as IdP + Backstage as catalog, and write the gateway-product ADR (the
+Kong-vs-APISIX/Gravitee/Tyk comparison).
